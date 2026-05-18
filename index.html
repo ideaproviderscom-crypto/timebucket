@@ -120,15 +120,6 @@
   .cat-label-hobby  { color: var(--cat-hobby);  font-size: 0.7rem; font-weight: 600; }
   .cat-label-work   { color: var(--cat-work);   font-size: 0.7rem; font-weight: 600; }
 
-  /* ── 統計バー ── */
-  .stats { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
-  .stat-item { text-align: center; }
-  .stat-num { font-size: 1.4rem; font-weight: 700; }
-  .stat-label { font-size: 0.7rem; color: var(--text2); }
-  .stat-num.green { color: var(--green); }
-  .stat-num.yellow { color: var(--yellow); }
-  .stat-num.red { color: var(--red); }
-
   /* ── empty state ── */
   .empty { text-align: center; padding: 40px 20px; color: var(--text2); }
   .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
@@ -146,7 +137,6 @@
   .current-age-line { font-size: 0.7rem; color: var(--accent2); text-align: center; margin-bottom: 6px; font-weight: 600; }
 
   @media (max-width: 600px) {
-    .stats { gap: 12px; }
     .cards-grid { grid-template-columns: 1fr; }
     header h1 { font-size: 0.95rem; }
   }
@@ -396,21 +386,6 @@ function updateFilterBucket(settings) {
   sel.value = cur;
 }
 
-// ── 統計 ──
-function renderStats(items) {
-  const total = items.length;
-  const done = items.filter(i => i.status === 'done').length;
-  const pending = items.filter(i => i.status === 'pending').length;
-  const canceled = items.filter(i => i.status === 'canceled').length;
-
-  return `<div class="stats">
-    <div class="stat-item"><div class="stat-num">${total}</div><div class="stat-label">合計</div></div>
-    <div class="stat-item"><div class="stat-num yellow">${pending}</div><div class="stat-label">未達成</div></div>
-    <div class="stat-item"><div class="stat-num green">${done}</div><div class="stat-label">達成</div></div>
-    <div class="stat-item"><div class="stat-num red">${canceled}</div><div class="stat-label">中止</div></div>
-  </div>`;
-}
-
 // ── メインrender ──
 function renderView() {
   const data = loadData();
@@ -434,9 +409,9 @@ function renderView() {
   const content = document.getElementById('content');
 
   if (currentTab === 'timeline') {
-    content.innerHTML = renderStats(items) + renderTimeline(filtered, settings);
+    content.innerHTML = renderTimeline(filtered, settings);
   } else {
-    content.innerHTML = renderStats(items) + renderCards(filtered, settings);
+    content.innerHTML = renderCards(filtered, settings);
   }
 }
 
