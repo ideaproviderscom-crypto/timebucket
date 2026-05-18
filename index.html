@@ -310,9 +310,10 @@ function loadData() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) return JSON.parse(raw);
   } catch(e) {}
+  // localStorageが空の場合はlastModified=0にする（Gistが必ず勝つように）
   return {
     seeded: true,
-    lastModified: Date.now(),
+    lastModified: 0,
     settings: { currentAge: 40, startAge: 40, endAge: 90 },
     items: []
   };
