@@ -128,6 +128,19 @@
   /* ── 現在年齢ライン ── */
   .current-age-line { font-size: 0.7rem; color: var(--accent2); text-align: center; margin-bottom: 6px; font-weight: 600; }
 
+  /* ── バケットメモ ── */
+  .bucket-memo { font-size: 0.68rem; color: var(--text2); text-align: center; padding: 4px 6px 2px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+  .bucket-memo-placeholder { font-size: 0.65rem; color: var(--border); text-align: center; padding: 3px 6px 2px; font-style: italic; }
+  .bucket-header-wrap { background: var(--surface2); border-bottom: 2px solid var(--accent); position: sticky; top: 0; cursor: pointer; }
+  .bucket-header-wrap:hover { background: rgba(108,99,255,0.12); }
+  .bucket-header-wrap.current { background: rgba(108,99,255,0.2); border-bottom-color: var(--accent2); }
+  .bucket-header-wrap .bucket-header { border-bottom: none; background: transparent; position: static; }
+  .bucket-header-wrap.current .bucket-header { color: var(--accent2); }
+
+  /* ── バケットメモ編集モーダル ── */
+  #bucketMemoModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
+  #bucketMemoModal.open { display: flex; }
+
   @media (max-width: 600px) {
     .cards-grid { grid-template-columns: 1fr; }
     header h1 { font-size: 0.95rem; }
@@ -232,6 +245,23 @@
   </div>
 </div>
 
+<!-- バケットメモ編集モーダル -->
+<div id="bucketMemoModal">
+  <div class="modal-box">
+    <h3 id="bucketMemoModalTitle">メモ編集</h3>
+    <div class="item-form">
+      <div class="form-row">
+        <label>メモ（年齢見出し下に表示）</label>
+        <textarea id="bucketMemoText" placeholder="例：娘 14〜18歳 / 独立前最後の家族時間" style="min-height:80px"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeBucketMemoModal()">キャンセル</button>
+        <button class="btn-save" onclick="saveBucketMemo()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Gist同期 (MUST BE FIRST: TDZバグ回避) ──
 function _d(e,k){return e.split('').map((c,i)=>String.fromCharCode(c.charCodeAt(0)^k.charCodeAt(i%k.length))).join('');}
@@ -316,7 +346,8 @@ function loadData() {
     seeded: true,
     lastModified: 0,
     settings: { currentAge: 40, startAge: 40, endAge: 90 },
-    items: []
+    items: [],
+    bucketMemos: {}
   };
 }
 
@@ -401,6 +432,8 @@ function renderView() {
 
 // ── タイムラインビュー ──
 function renderTimeline(items, settings) {
+  const data = loadData();
+  const bucketMemos = data.bucketMemos || {};
   const buckets = getBuckets(settings);
   const currentBucketStart = getCurrentBucketStart(settings.currentAge);
 
@@ -413,8 +446,16 @@ function renderTimeline(items, settings) {
       ...allBucketItems.filter(i => i.status === 'pending'),
       ...allBucketItems.filter(i => i.status !== 'pending')
     ];
+    const memoKey = String(b.start);
+    const memoText = bucketMemos[memoKey] || '';
+    const memoHtml = memoText
+      ? `<div class="bucket-memo">${escHtml(memoText)}</div>`
+      : '';
     html += `<div class="bucket-col">
-      <div class="bucket-header${isCurrent ? ' current' : ''}">${b.label}</div>
+      <div class="bucket-header-wrap${isCurrent ? ' current' : ''}" onclick="openBucketMemoModal(${b.start}, '${b.label}')">
+        <div class="bucket-header">${b.label}</div>
+        ${memoHtml}
+      </div>
       <div class="bucket-body">`;
     if (bucketItems.length === 0) {
       html += `<div style="color:var(--text2);font-size:0.7rem;text-align:center;padding:8px 0">なし</div>`;
@@ -611,12 +652,49 @@ function deleteItem(id) {
   renderView();
 }
 
+// ── バケットメモ編集 ──
+let editingBucketStart = null;
+
+function openBucketMemoModal(bucketStart, bucketLabel) {
+  editingBucketStart = bucketStart;
+  const data = loadData();
+  const memoKey = String(bucketStart);
+  document.getElementById('bucketMemoModalTitle').textContent = `${bucketLabel} のメモ`;
+  document.getElementById('bucketMemoText').value = (data.bucketMemos || {})[memoKey] || '';
+  document.getElementById('bucketMemoModal').classList.add('open');
+  document.getElementById('bucketMemoText').focus();
+}
+
+function closeBucketMemoModal() {
+  document.getElementById('bucketMemoModal').classList.remove('open');
+  editingBucketStart = null;
+}
+
+function saveBucketMemo() {
+  if (editingBucketStart === null) return;
+  const data = loadData();
+  if (!data.bucketMemos) data.bucketMemos = {};
+  const memoKey = String(editingBucketStart);
+  const text = document.getElementById('bucketMemoText').value.trim();
+  if (text) {
+    data.bucketMemos[memoKey] = text;
+  } else {
+    delete data.bucketMemos[memoKey];
+  }
+  saveData(data);
+  closeBucketMemoModal();
+  renderView();
+}
+
 // ── クリック外で閉じる ──
 document.getElementById('settingsModal').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
 });
 document.getElementById('itemModal').addEventListener('click', function(e) {
   if (e.target === this) closeItemModal();
+});
+document.getElementById('bucketMemoModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBucketMemoModal();
 });
 
 // ── 初期化 ──
