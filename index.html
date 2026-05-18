@@ -101,6 +101,25 @@
   .status-badge.done { background: rgba(67,217,143,0.2); color: var(--green); }
   .status-badge.canceled { background: rgba(239,71,111,0.2); color: var(--red); }
 
+  /* ── カテゴリ色 ── */
+  :root {
+    --cat-travel: #4A9EFF;
+    --cat-family: #FF6B9D;
+    --cat-health: #4CAF50;
+    --cat-hobby: #9C27B0;
+    --cat-work: #FFB800;
+  }
+  .cat-travel { border-left-color: var(--cat-travel) !important; }
+  .cat-family { border-left-color: var(--cat-family) !important; }
+  .cat-health { border-left-color: var(--cat-health) !important; }
+  .cat-hobby  { border-left-color: var(--cat-hobby)  !important; }
+  .cat-work   { border-left-color: var(--cat-work)   !important; }
+  .cat-label-travel { color: var(--cat-travel); font-size: 0.7rem; font-weight: 600; }
+  .cat-label-family { color: var(--cat-family); font-size: 0.7rem; font-weight: 600; }
+  .cat-label-health { color: var(--cat-health); font-size: 0.7rem; font-weight: 600; }
+  .cat-label-hobby  { color: var(--cat-hobby);  font-size: 0.7rem; font-weight: 600; }
+  .cat-label-work   { color: var(--cat-work);   font-size: 0.7rem; font-weight: 600; }
+
   /* ── 統計バー ── */
   .stats { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
   .stat-item { text-align: center; }
@@ -109,10 +128,6 @@
   .stat-num.green { color: var(--green); }
   .stat-num.yellow { color: var(--yellow); }
   .stat-num.red { color: var(--red); }
-  .overall-progress { flex: 1; min-width: 200px; }
-  .overall-progress-label { font-size: 0.78rem; color: var(--text2); margin-bottom: 5px; }
-  .overall-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-  .overall-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; transition: width 0.4s; }
 
   /* ── empty state ── */
   .empty { text-align: center; padding: 40px 20px; color: var(--text2); }
@@ -204,6 +219,17 @@
       <div class="form-row">
         <label>年代バケット</label>
         <select id="itemBucket"></select>
+      </div>
+      <div class="form-row">
+        <label>カテゴリ</label>
+        <select id="itemCategory">
+          <option value="">未設定</option>
+          <option value="travel">旅行・冒険</option>
+          <option value="family">家族・人間関係</option>
+          <option value="health">健康・体</option>
+          <option value="hobby">趣味・挑戦</option>
+          <option value="work">仕事・お金</option>
+        </select>
       </div>
       <div class="form-row">
         <label>状態</label>
@@ -376,17 +402,12 @@ function renderStats(items) {
   const done = items.filter(i => i.status === 'done').length;
   const pending = items.filter(i => i.status === 'pending').length;
   const canceled = items.filter(i => i.status === 'canceled').length;
-  const avgProgress = total ? Math.round(items.reduce((s,i) => s + (i.progress||0), 0) / total) : 0;
 
   return `<div class="stats">
     <div class="stat-item"><div class="stat-num">${total}</div><div class="stat-label">合計</div></div>
     <div class="stat-item"><div class="stat-num yellow">${pending}</div><div class="stat-label">未達成</div></div>
     <div class="stat-item"><div class="stat-num green">${done}</div><div class="stat-label">達成</div></div>
     <div class="stat-item"><div class="stat-num red">${canceled}</div><div class="stat-label">中止</div></div>
-    <div class="overall-progress">
-      <div class="overall-progress-label">達成率 ${total ? Math.round(done/total*100) : 0}%　平均進捗 ${avgProgress}%</div>
-      <div class="overall-bar"><div class="overall-bar-fill" style="width:${total ? Math.round(done/total*100) : 0}%"></div></div>
-    </div>
   </div>`;
 }
 
@@ -436,7 +457,9 @@ function renderTimeline(items, settings) {
     }
     bucketItems.forEach(item => {
       const prog = item.progress || 0;
-      html += `<div class="item-card ${item.status}" onclick="openItemModal('${item.id}')">
+      const cc = catCls(item.category);
+      html += `<div class="item-card ${item.status}${cc ? ' ' + cc : ''}" onclick="openItemModal('${item.id}')">
+        ${item.category ? catLabel(item.category) : ''}
         <div class="card-title">${escHtml(item.title)}</div>
         <div class="card-status">${statusLabel(item.status)}</div>
         <div class="card-progress"><div class="card-progress-bar ${item.status}" style="width:${prog}%"></div></div>
@@ -456,8 +479,12 @@ function renderCards(items, settings) {
   let html = '<div class="cards-grid">';
   items.forEach(item => {
     const prog = item.progress || 0;
-    html += `<div class="card-big ${item.status}" onclick="openItemModal('${item.id}')">
-      <div class="card-big-bucket">${item.bucketStart !== undefined ? getBucketLabel(item.bucketStart, settings) : '—'}</div>
+    const cc = catCls(item.category);
+    html += `<div class="card-big ${item.status}${cc ? ' ' + cc : ''}" onclick="openItemModal('${item.id}')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="card-big-bucket" style="margin-bottom:0">${item.bucketStart !== undefined ? getBucketLabel(item.bucketStart, settings) : '—'}</div>
+        ${item.category ? catLabel(item.category) : ''}
+      </div>
       <div class="card-big-title">${escHtml(item.title)}</div>
       ${item.memo ? `<div class="card-big-memo">${escHtml(item.memo)}</div>` : ''}
       <div class="card-big-progress-wrap">
@@ -480,6 +507,19 @@ function statusLabel(s) {
 }
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+const CAT_MAP = {
+  travel: { label: '旅行・冒険', cls: 'cat-travel' },
+  family: { label: '家族・人間関係', cls: 'cat-family' },
+  health: { label: '健康・体', cls: 'cat-health' },
+  hobby:  { label: '趣味・挑戦', cls: 'cat-hobby' },
+  work:   { label: '仕事・お金', cls: 'cat-work' }
+};
+function catCls(cat) { return cat && CAT_MAP[cat] ? CAT_MAP[cat].cls : ''; }
+function catLabel(cat) {
+  if (!cat || !CAT_MAP[cat]) return '';
+  const c = CAT_MAP[cat];
+  return `<span class="cat-label-${cat}">${c.label}</span>`;
 }
 
 // ── 設定 ──
@@ -530,6 +570,7 @@ function openItemModal(id) {
     editingId = null;
     document.getElementById('itemModalTitle').textContent = '＋ やりたいこと追加';
     document.getElementById('itemTitle').value = '';
+    document.getElementById('itemCategory').value = '';
     document.getElementById('itemStatus').value = 'pending';
     document.getElementById('itemProgress').value = 0;
     document.getElementById('progressDisplay').textContent = '0%';
@@ -546,6 +587,7 @@ function openItemModal(id) {
     editingId = id;
     document.getElementById('itemModalTitle').textContent = '✏️ 編集';
     document.getElementById('itemTitle').value = item.title;
+    document.getElementById('itemCategory').value = item.category || '';
     document.getElementById('itemStatus').value = item.status;
     document.getElementById('itemProgress').value = item.progress || 0;
     document.getElementById('progressDisplay').textContent = (item.progress || 0) + '%';
@@ -572,6 +614,7 @@ function saveItem() {
 
   const data = loadData();
   const bucketStart = parseInt(document.getElementById('itemBucket').value);
+  const category = document.getElementById('itemCategory').value;
   const status = document.getElementById('itemStatus').value;
   const progress = parseInt(document.getElementById('itemProgress').value);
   const memo = document.getElementById('itemMemo').value.trim();
@@ -581,6 +624,7 @@ function saveItem() {
     if (item) {
       item.title = title;
       item.bucketStart = bucketStart;
+      item.category = category;
       item.status = status;
       item.progress = progress;
       item.memo = memo;
@@ -591,6 +635,7 @@ function saveItem() {
       id: uid(),
       title,
       bucketStart,
+      category,
       status,
       progress,
       memo,
