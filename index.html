@@ -30,13 +30,6 @@
   .btn-icon { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; }
   .btn-icon:hover { background: var(--accent); border-color: var(--accent); }
 
-  /* ── パスワード画面 ── */
-  #pwScreen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; }
-  #pwScreen h2 { font-size: 1.5rem; color: var(--accent); }
-  #pwScreen input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 16px; font-size: 1rem; text-align: center; letter-spacing: 4px; width: 180px; }
-  #pwScreen button { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 28px; font-size: 1rem; cursor: pointer; }
-  #pwError { color: var(--red); font-size: 0.85rem; }
-
   /* ── 設定画面 ── */
   #settingsModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
   #settingsModal.open { display: flex; }
@@ -146,16 +139,8 @@
 </head>
 <body>
 
-<!-- パスワード画面 -->
-<div id="pwScreen">
-  <h2>🪣 タイムバケット</h2>
-  <input type="password" id="pwInput" placeholder="パスワード" autocomplete="current-password">
-  <button onclick="checkPw()">開く</button>
-  <div id="pwError"></div>
-</div>
-
 <!-- メイン画面 -->
-<div id="app" style="display:none">
+<div id="app">
   <header>
     <div>
       <span style="font-size:1.1rem;font-weight:700;color:var(--accent)">🪣 タイムバケット</span>
@@ -364,21 +349,6 @@ function getBucketLabel(bucketStart, settings) {
 function getCurrentBucketStart(currentAge) {
   return Math.floor(currentAge / 5) * 5;
 }
-
-// ── パスワード ──
-function checkPw() {
-  const val = document.getElementById('pwInput').value;
-  if (val === '8181') {
-    document.getElementById('pwScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
-    syncFromGist();
-  } else {
-    document.getElementById('pwError').textContent = 'パスワードが違います';
-    document.getElementById('pwInput').value = '';
-  }
-}
-document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
 
 // ── 現在タブ ──
 let currentTab = 'timeline';
@@ -664,6 +634,10 @@ function initApp() {
   }
   renderView();
 }
+
+// ── 起動 ──
+initApp();
+syncFromGist();
 </script>
 </body>
 </html>
