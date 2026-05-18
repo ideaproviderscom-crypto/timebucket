@@ -185,14 +185,6 @@
       <label>現在の年齢</label>
       <input type="number" id="settingAge" min="1" max="120" value="30">
     </div>
-    <div class="form-row">
-      <label>開始年齢（5の倍数）</label>
-      <input type="number" id="settingStart" min="5" max="100" step="5" value="25">
-    </div>
-    <div class="form-row">
-      <label>終了年齢（5の倍数）</label>
-      <input type="number" id="settingEnd" min="10" max="120" step="5" value="90">
-    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeSettings()">キャンセル</button>
       <button class="btn-save" onclick="saveSettings()">保存</button>
@@ -321,7 +313,7 @@ function loadData() {
   return {
     seeded: true,
     lastModified: Date.now(),
-    settings: { currentAge: 30, startAge: 25, endAge: 90 },
+    settings: { currentAge: 40, startAge: 40, endAge: 90 },
     items: []
   };
 }
@@ -334,15 +326,18 @@ function saveData(data) {
 
 // ── バケット生成 ──
 function getBuckets(settings) {
-  const { startAge, endAge } = settings;
   const buckets = [];
-  for (let age = startAge; age < endAge; age += 5) {
-    buckets.push({ label: `${age}〜${age+4}歳`, start: age, end: age + 4 });
+  // 40〜84歳：5歳刻み
+  for (let age = 40; age <= 80; age += 5) {
+    buckets.push({ label: `${age}〜${age+4}歳`, start: age, end: age + 4, isOpen: false });
   }
+  // 85歳以上：オープンエンド
+  buckets.push({ label: '85〜歳', start: 85, end: 999, isOpen: true });
   return buckets;
 }
 
 function getBucketLabel(bucketStart, settings) {
+  if (bucketStart >= 85) return '85〜歳';
   return `${bucketStart}〜${bucketStart+4}歳`;
 }
 
@@ -501,9 +496,9 @@ function closeSettings() {
 function saveSettings() {
   const data = loadData();
   data.settings = {
-    currentAge: parseInt(document.getElementById('settingAge').value) || 30,
-    startAge: parseInt(document.getElementById('settingStart').value) || 25,
-    endAge: parseInt(document.getElementById('settingEnd').value) || 90
+    currentAge: parseInt(document.getElementById('settingAge').value) || 40,
+    startAge: 40,
+    endAge: 90
   };
   saveData(data);
   closeSettings();
