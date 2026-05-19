@@ -18,6 +18,11 @@
     --text2: #9090b0;
     --border: #2e3150;
     --radius: 12px;
+    --cat-travel: #4A9EFF;
+    --cat-family: #FF6B9D;
+    --cat-health: #4CAF50;
+    --cat-hobby: #9C27B0;
+    --cat-work: #FFB800;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
@@ -30,28 +35,27 @@
   .btn-icon { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; }
   .btn-icon:hover { background: var(--accent); border-color: var(--accent); }
 
-  /* ── 設定画面 ── */
-  #settingsModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
-  #settingsModal.open { display: flex; }
+  /* ── モーダル共通 ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
   .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; width: min(400px, 92vw); }
   .modal-box h3 { margin-bottom: 16px; color: var(--accent); }
   .form-row { margin-bottom: 14px; }
   .form-row label { display: block; font-size: 0.82rem; color: var(--text2); margin-bottom: 4px; }
-  .form-row input, .form-row select { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 12px; font-size: 0.95rem; }
+  .form-row input, .form-row select, .form-row textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 12px; font-size: 0.95rem; font-family: inherit; }
+  .form-row textarea { resize: vertical; min-height: 70px; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
   .btn-save { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 20px; cursor: pointer; font-size: 0.9rem; }
   .btn-cancel { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 20px; cursor: pointer; font-size: 0.9rem; }
-
-  /* ── アイテム追加/編集モーダル ── */
-  #itemModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
-  #itemModal.open { display: flex; }
+  .delete-btn { background: rgba(239,71,111,0.15); color: var(--red); border: 1px solid rgba(239,71,111,0.3); border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 0.85rem; }
+  .delete-btn:hover { background: rgba(239,71,111,0.3); }
 
   /* ── タブ ── */
   .tabs { display: flex; gap: 4px; padding: 12px 16px 0; }
   .tab { background: var(--surface2); border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; padding: 8px 16px; cursor: pointer; font-size: 0.85rem; color: var(--text2); transition: all 0.2s; }
   .tab.active { background: var(--surface); color: var(--text); border-color: var(--border); }
 
-  /* ── フィルタ/ソート ── */
+  /* ── ツールバー（フィルタのみ） ── */
   .toolbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .toolbar select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 0.8rem; }
   .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 7px 16px; cursor: pointer; font-size: 0.85rem; margin-left: auto; font-weight: 600; }
@@ -65,11 +69,23 @@
   .timeline { display: flex; gap: 0; min-width: max-content; }
   .bucket-col { min-width: 230px; width: 230px; border-right: 1px solid var(--border); }
   .bucket-col:last-child { border-right: none; }
-  .bucket-header { background: var(--surface2); border-bottom: 2px solid var(--accent); padding: 8px; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--accent); position: sticky; top: 0; }
-  .bucket-header.current { background: rgba(108,99,255,0.2); border-bottom-color: var(--accent2); color: var(--accent2); }
   .bucket-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 80px; }
 
-  /* ── カードコンポーネント ── */
+  /* ── バケットヘッダー ── */
+  .bucket-header-wrap { background: var(--surface2); border-bottom: 2px solid var(--accent); position: sticky; top: 0; cursor: pointer; }
+  .bucket-header-wrap:hover { background: rgba(108,99,255,0.12); }
+  .bucket-header-wrap.current { background: rgba(108,99,255,0.2); border-bottom-color: var(--accent2); }
+  .bucket-header { padding: 8px; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+  .bucket-header-wrap.current .bucket-header { color: var(--accent2); }
+
+  /* ── バケットメモ（別枠） ── */
+  .bucket-memo-box { margin: 0 6px 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; display: flex; gap: 5px; align-items: flex-start; }
+  .bucket-memo-icon { font-size: 0.7rem; flex-shrink: 0; margin-top: 1px; opacity: 0.7; }
+  .bucket-memo-text { font-size: 0.7rem; color: var(--text2); line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+  .bucket-memo-add { margin: 0 6px 6px; background: transparent; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 8px; text-align: center; font-size: 0.65rem; color: var(--border); cursor: pointer; display: none; }
+  .bucket-header-wrap:hover .bucket-memo-add { display: block; }
+
+  /* ── カードコンポーネント（タイムライン用） ── */
   .item-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
   .item-card:hover { transform: translateY(-1px); border-color: var(--accent); }
   .item-card.done { border-left: 3px solid var(--green); opacity: 0.75; }
@@ -97,13 +113,6 @@
   .status-badge.canceled { background: rgba(239,71,111,0.2); color: var(--red); }
 
   /* ── カテゴリ色 ── */
-  :root {
-    --cat-travel: #4A9EFF;
-    --cat-family: #FF6B9D;
-    --cat-health: #4CAF50;
-    --cat-hobby: #9C27B0;
-    --cat-work: #FFB800;
-  }
   .cat-travel { border-left-color: var(--cat-travel) !important; }
   .cat-family { border-left-color: var(--cat-family) !important; }
   .cat-health { border-left-color: var(--cat-health) !important; }
@@ -115,34 +124,9 @@
   .cat-label-hobby  { color: var(--cat-hobby);  font-size: 0.7rem; font-weight: 600; }
   .cat-label-work   { color: var(--cat-work);   font-size: 0.7rem; font-weight: 600; }
 
-  /* ── empty state ── */
+  /* ── 空状態 ── */
   .empty { text-align: center; padding: 40px 20px; color: var(--text2); }
   .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
-
-  /* ── アイテム編集フォーム ── */
-  .item-form { display: flex; flex-direction: column; gap: 12px; }
-  .item-form textarea { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 12px; font-size: 0.95rem; resize: vertical; min-height: 70px; font-family: inherit; }
-  .range-wrap { display: flex; align-items: center; gap: 8px; }
-  .range-wrap input[type=range] { flex: 1; accent-color: var(--accent); }
-  .range-val { min-width: 32px; text-align: right; font-size: 0.9rem; color: var(--accent); font-weight: 700; }
-  .delete-btn { background: rgba(239,71,111,0.15); color: var(--red); border: 1px solid rgba(239,71,111,0.3); border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 0.85rem; }
-  .delete-btn:hover { background: rgba(239,71,111,0.3); }
-
-  /* ── 現在年齢ライン ── */
-  .current-age-line { font-size: 0.7rem; color: var(--accent2); text-align: center; margin-bottom: 6px; font-weight: 600; }
-
-  /* ── バケットメモ ── */
-  .bucket-memo { font-size: 0.68rem; color: var(--text2); text-align: center; padding: 4px 6px 2px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
-  .bucket-memo-placeholder { font-size: 0.65rem; color: var(--border); text-align: center; padding: 3px 6px 2px; font-style: italic; }
-  .bucket-header-wrap { background: var(--surface2); border-bottom: 2px solid var(--accent); position: sticky; top: 0; cursor: pointer; }
-  .bucket-header-wrap:hover { background: rgba(108,99,255,0.12); }
-  .bucket-header-wrap.current { background: rgba(108,99,255,0.2); border-bottom-color: var(--accent2); }
-  .bucket-header-wrap .bucket-header { border-bottom: none; background: transparent; position: static; }
-  .bucket-header-wrap.current .bucket-header { color: var(--accent2); }
-
-  /* ── バケットメモ編集モーダル ── */
-  #bucketMemoModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; }
-  #bucketMemoModal.open { display: flex; }
 
   @media (max-width: 600px) {
     .cards-grid { grid-template-columns: 1fr; }
@@ -152,7 +136,6 @@
 </head>
 <body>
 
-<!-- メイン画面 -->
 <div id="app">
   <header>
     <div>
@@ -180,10 +163,6 @@
     <select id="filterBucket" onchange="renderView()">
       <option value="">全年代</option>
     </select>
-    <select id="sortBy" onchange="renderView()">
-      <option value="bucket">年代順</option>
-      <option value="added">追加順</option>
-    </select>
     <button class="add-btn" onclick="openItemModal(null)">＋ 追加</button>
   </div>
 
@@ -191,7 +170,7 @@
 </div>
 
 <!-- 設定モーダル -->
-<div id="settingsModal">
+<div id="settingsModal" class="modal-overlay">
   <div class="modal-box">
     <h3>⚙️ 設定</h3>
     <div class="form-row">
@@ -206,63 +185,59 @@
 </div>
 
 <!-- アイテム追加/編集モーダル -->
-<div id="itemModal">
+<div id="itemModal" class="modal-overlay">
   <div class="modal-box">
     <h3 id="itemModalTitle">＋ やりたいこと追加</h3>
-    <div class="item-form">
-      <div class="form-row">
-        <label>タイトル *</label>
-        <input type="text" id="itemTitle" placeholder="例：富士山に登る" maxlength="80">
-      </div>
-      <div class="form-row">
-        <label>年代バケット</label>
-        <select id="itemBucket"></select>
-      </div>
-      <div class="form-row">
-        <label>カテゴリ</label>
-        <select id="itemCategory">
-          <option value="">未設定</option>
-          <option value="travel">旅行・冒険</option>
-          <option value="family">家族・人間関係</option>
-          <option value="health">健康・体</option>
-          <option value="hobby">趣味・挑戦</option>
-          <option value="work">仕事・お金</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>状態</label>
-        <select id="itemStatus">
-          <option value="pending">未達成</option>
-          <option value="ongoing">経過中</option>
-          <option value="done">達成</option>
-          <option value="canceled">中止</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>メモ</label>
-        <textarea id="itemMemo" placeholder="詳細・達成の記録など..."></textarea>
-      </div>
-      <div class="modal-actions" id="itemModalActions">
-        <button class="btn-cancel" onclick="closeItemModal()">キャンセル</button>
-        <button class="btn-save" onclick="saveItem()">保存</button>
-      </div>
+    <div class="form-row">
+      <label>タイトル *</label>
+      <input type="text" id="itemTitle" placeholder="例：富士山に登る" maxlength="80">
+    </div>
+    <div class="form-row">
+      <label>年代バケット</label>
+      <select id="itemBucket"></select>
+    </div>
+    <div class="form-row">
+      <label>カテゴリ</label>
+      <select id="itemCategory">
+        <option value="">未設定</option>
+        <option value="travel">旅行・冒険</option>
+        <option value="family">家族・人間関係</option>
+        <option value="health">健康・体</option>
+        <option value="hobby">趣味・挑戦</option>
+        <option value="work">仕事・お金</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>状態</label>
+      <select id="itemStatus">
+        <option value="pending">未達成</option>
+        <option value="ongoing">経過中</option>
+        <option value="done">達成</option>
+        <option value="canceled">中止</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>メモ</label>
+      <textarea id="itemMemo" placeholder="詳細・達成の記録など..."></textarea>
+    </div>
+    <div class="modal-actions" id="itemModalActions">
+      <button class="btn-cancel" onclick="closeItemModal()">キャンセル</button>
+      <button class="btn-save" onclick="saveItem()">追加</button>
     </div>
   </div>
 </div>
 
 <!-- バケットメモ編集モーダル -->
-<div id="bucketMemoModal">
+<div id="bucketMemoModal" class="modal-overlay">
   <div class="modal-box">
     <h3 id="bucketMemoModalTitle">メモ編集</h3>
-    <div class="item-form">
-      <div class="form-row">
-        <label>メモ（年齢見出し下に表示）</label>
-        <textarea id="bucketMemoText" placeholder="例：娘 14〜18歳 / 独立前最後の家族時間" style="min-height:80px"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeBucketMemoModal()">キャンセル</button>
-        <button class="btn-save" onclick="saveBucketMemo()">保存</button>
-      </div>
+    <div class="form-row">
+      <label>メモ（年齢見出し下に表示）</label>
+      <textarea id="bucketMemoText" placeholder="例：娘 14〜18歳 / 独立前最後の家族時間" style="min-height:80px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeBucketMemoModal()">キャンセル</button>
+      <button class="btn-save" onclick="saveBucketMemo()">保存</button>
     </div>
   </div>
 </div>
@@ -276,10 +251,10 @@ const GIST_FILE = 'timebucket_data.json';
 const STORE_KEY = 'timebucket_v1';
 let syncTimer = null;
 
-function setSyncStatus(s){
+function setSyncStatus(s) {
   const el = document.getElementById('syncStatus');
   if (!el) return;
-  el.textContent = s==='syncing' ? '🔄' : s==='synced' ? '✓ 同期済み' : s==='error' ? '⚠ オフライン' : '';
+  el.textContent = s === 'syncing' ? '🔄' : s === 'synced' ? '✓ 同期済み' : s === 'error' ? '⚠ オフライン' : '';
 }
 
 async function syncFromGist() {
@@ -346,7 +321,6 @@ function loadData() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) return JSON.parse(raw);
   } catch(e) {}
-  // localStorageが空の場合はlastModified=0にする（Gistが必ず勝つように）
   return {
     seeded: true,
     lastModified: 0,
@@ -363,18 +337,16 @@ function saveData(data) {
 }
 
 // ── バケット生成 ──
-function getBuckets(settings) {
+function getBuckets() {
   const buckets = [];
-  // 40〜84歳：5歳刻み
   for (let age = 40; age <= 80; age += 5) {
-    buckets.push({ label: `${age}〜${age+4}歳`, start: age, end: age + 4, isOpen: false });
+    buckets.push({ label: `${age}〜${age+4}歳`, start: age, end: age + 4 });
   }
-  // 85歳以上：オープンエンド
-  buckets.push({ label: '85〜歳', start: 85, end: 999, isOpen: true });
+  buckets.push({ label: '85〜歳', start: 85, end: 999 });
   return buckets;
 }
 
-function getBucketLabel(bucketStart, settings) {
+function getBucketLabel(bucketStart) {
   if (bucketStart >= 85) return '85〜歳';
   return `${bucketStart}〜${bucketStart+4}歳`;
 }
@@ -383,7 +355,7 @@ function getCurrentBucketStart(currentAge) {
   return Math.floor(currentAge / 5) * 5;
 }
 
-// ── 現在タブ ──
+// ── タブ切り替え ──
 let currentTab = 'timeline';
 
 function switchTab(tab) {
@@ -393,12 +365,12 @@ function switchTab(tab) {
   renderView();
 }
 
-// ── フィルタ/ソート バケット選択肢更新 ──
-function updateFilterBucket(settings) {
+// ── フィルタ バケット選択肢更新 ──
+function updateFilterBucket() {
   const sel = document.getElementById('filterBucket');
   const cur = sel.value;
   sel.innerHTML = '<option value="">全年代</option>';
-  getBuckets(settings).forEach(b => {
+  getBuckets().forEach(b => {
     const opt = document.createElement('option');
     opt.value = b.start;
     opt.textContent = b.label;
@@ -411,36 +383,29 @@ function updateFilterBucket(settings) {
 function renderView() {
   const data = loadData();
   const { settings, items } = data;
-  updateFilterBucket(settings);
+  updateFilterBucket();
 
   const filterStatus = document.getElementById('filterStatus').value;
   const filterBucket = document.getElementById('filterBucket').value;
-  const sortBy = document.getElementById('sortBy').value;
 
-  let filtered = items.filter(item => {
+  const filtered = items.filter(item => {
     if (filterStatus && item.status !== filterStatus) return false;
     if (filterBucket && item.bucketStart != filterBucket) return false;
     return true;
   });
 
-  if (sortBy === 'bucket') filtered.sort((a,b) => (a.bucketStart||0) - (b.bucketStart||0));
-  else if (sortBy === 'added') filtered.sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
-
   const content = document.getElementById('content');
-
   if (currentTab === 'timeline') {
-    content.innerHTML = renderTimeline(filtered, settings);
+    content.innerHTML = renderTimeline(filtered, settings, data.bucketMemos || {});
   } else {
     content.innerHTML = renderCards(filtered, settings);
   }
 }
 
 // ── タイムラインビュー ──
-function renderTimeline(items, settings) {
-  const data = loadData();
-  const bucketMemos = data.bucketMemos || {};
-  const buckets = getBuckets(settings);
+function renderTimeline(items, settings, bucketMemos) {
   const currentBucketStart = getCurrentBucketStart(settings.currentAge);
+  const buckets = getBuckets();
 
   let html = '<div class="timeline-wrap"><div class="timeline">';
   buckets.forEach(b => {
@@ -451,17 +416,25 @@ function renderTimeline(items, settings) {
       ...allBucketItems.filter(i => i.status === 'pending' || i.status === 'ongoing'),
       ...allBucketItems.filter(i => i.status !== 'pending' && i.status !== 'ongoing')
     ];
-    const memoKey = String(b.start);
-    const memoText = bucketMemos[memoKey] || '';
-    const memoHtml = memoText
-      ? `<div class="bucket-memo">${escHtml(memoText)}</div>`
-      : '';
+    const memoText = bucketMemos[String(b.start)] || '';
+
+    let memoHtml = '';
+    if (memoText) {
+      memoHtml = `<div class="bucket-memo-box">
+        <span class="bucket-memo-icon">📝</span>
+        <span class="bucket-memo-text">${escHtml(memoText)}</span>
+      </div>`;
+    } else {
+      memoHtml = `<div class="bucket-memo-add">＋ メモ追加</div>`;
+    }
+
     html += `<div class="bucket-col">
       <div class="bucket-header-wrap${isCurrent ? ' current' : ''}" onclick="openBucketMemoModal(${b.start}, '${b.label}')">
         <div class="bucket-header">${b.label}</div>
-        ${memoHtml}
       </div>
+      ${memoHtml}
       <div class="bucket-body">`;
+
     if (bucketItems.length === 0) {
       html += `<div style="color:var(--text2);font-size:0.7rem;text-align:center;padding:8px 0">なし</div>`;
     }
@@ -484,17 +457,17 @@ function renderCards(items, settings) {
   if (items.length === 0) {
     return '<div class="empty"><div class="empty-icon">🪣</div><div>まだアイテムがありません<br>「＋ 追加」から始めましょう</div></div>';
   }
-  let html = '<div class="cards-grid">';
-  // カードビューも未達成・経過中を先、達成・中止を後に表示
-  const sortedItems = [
+  // 未達成・経過中を先、達成・中止を後に表示
+  const sorted = [
     ...items.filter(i => i.status === 'pending' || i.status === 'ongoing'),
     ...items.filter(i => i.status !== 'pending' && i.status !== 'ongoing')
   ];
-  sortedItems.forEach(item => {
+  let html = '<div class="cards-grid">';
+  sorted.forEach(item => {
     const cc = catCls(item.category);
     html += `<div class="card-big ${item.status}${cc ? ' ' + cc : ''}" onclick="openItemModal('${item.id}')">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <div class="card-big-bucket" style="margin-bottom:0">${item.bucketStart !== undefined ? getBucketLabel(item.bucketStart, settings) : '—'}</div>
+        <div class="card-big-bucket" style="margin-bottom:0">${item.bucketStart !== undefined ? getBucketLabel(item.bucketStart) : '—'}</div>
         ${item.category ? catLabel(item.category) : ''}
       </div>
       <div class="card-big-title">${escHtml(item.title)}</div>
@@ -508,17 +481,20 @@ function renderCards(items, settings) {
 
 // ── ユーティリティ ──
 function escHtml(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
 function statusLabel(s) {
-  if (s === 'done') return '✅ 達成';
+  if (s === 'done')     return '✅ 達成';
   if (s === 'canceled') return '🚫 中止';
-  if (s === 'ongoing') return '🔥 経過中';
+  if (s === 'ongoing')  return '🔥 経過中';
   return '⏳ 未達成';
 }
+
 function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
+
 const CAT_MAP = {
   travel: { label: '旅行・冒険', cls: 'cat-travel' },
   family: { label: '家族・人間関係', cls: 'cat-family' },
@@ -529,15 +505,13 @@ const CAT_MAP = {
 function catCls(cat) { return cat && CAT_MAP[cat] ? CAT_MAP[cat].cls : ''; }
 function catLabel(cat) {
   if (!cat || !CAT_MAP[cat]) return '';
-  const c = CAT_MAP[cat];
-  return `<span class="cat-label-${cat}">${c.label}</span>`;
+  return `<span class="cat-label-${cat}">${CAT_MAP[cat].label}</span>`;
 }
 
-// ── 設定 ──
+// ── 設定モーダル ──
 function openSettings() {
   const data = loadData();
-  const s = data.settings;
-  document.getElementById('settingAge').value = s.currentAge;
+  document.getElementById('settingAge').value = data.settings.currentAge;
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettings() {
@@ -561,7 +535,7 @@ let editingId = null;
 function populateBucketSelect(settings, selectedStart) {
   const sel = document.getElementById('itemBucket');
   sel.innerHTML = '';
-  getBuckets(settings).forEach(b => {
+  getBuckets().forEach(b => {
     const opt = document.createElement('option');
     opt.value = b.start;
     opt.textContent = b.label;
@@ -572,23 +546,19 @@ function populateBucketSelect(settings, selectedStart) {
 
 function openItemModal(id) {
   const data = loadData();
-  const settings = data.settings;
-
   if (id === null) {
-    // 新規
     editingId = null;
     document.getElementById('itemModalTitle').textContent = '＋ やりたいこと追加';
     document.getElementById('itemTitle').value = '';
     document.getElementById('itemCategory').value = '';
     document.getElementById('itemStatus').value = 'pending';
     document.getElementById('itemMemo').value = '';
-    populateBucketSelect(settings, getCurrentBucketStart(settings.currentAge));
+    populateBucketSelect(data.settings, getCurrentBucketStart(data.settings.currentAge));
     document.getElementById('itemModalActions').innerHTML = `
       <button class="btn-cancel" onclick="closeItemModal()">キャンセル</button>
       <button class="btn-save" onclick="saveItem()">追加</button>
     `;
   } else {
-    // 編集
     const item = data.items.find(i => i.id === id);
     if (!item) return;
     editingId = id;
@@ -597,7 +567,7 @@ function openItemModal(id) {
     document.getElementById('itemCategory').value = item.category || '';
     document.getElementById('itemStatus').value = item.status;
     document.getElementById('itemMemo').value = item.memo || '';
-    populateBucketSelect(settings, item.bucketStart);
+    populateBucketSelect(data.settings, item.bucketStart);
     document.getElementById('itemModalActions').innerHTML = `
       <button class="delete-btn" onclick="deleteItem('${id}')">🗑 削除</button>
       <button class="btn-cancel" onclick="closeItemModal()">キャンセル</button>
@@ -666,9 +636,8 @@ let editingBucketStart = null;
 function openBucketMemoModal(bucketStart, bucketLabel) {
   editingBucketStart = bucketStart;
   const data = loadData();
-  const memoKey = String(bucketStart);
   document.getElementById('bucketMemoModalTitle').textContent = `${bucketLabel} のメモ`;
-  document.getElementById('bucketMemoText').value = (data.bucketMemos || {})[memoKey] || '';
+  document.getElementById('bucketMemoText').value = (data.bucketMemos || {})[String(bucketStart)] || '';
   document.getElementById('bucketMemoModal').classList.add('open');
   document.getElementById('bucketMemoText').focus();
 }
@@ -682,19 +651,18 @@ function saveBucketMemo() {
   if (editingBucketStart === null) return;
   const data = loadData();
   if (!data.bucketMemos) data.bucketMemos = {};
-  const memoKey = String(editingBucketStart);
   const text = document.getElementById('bucketMemoText').value.trim();
   if (text) {
-    data.bucketMemos[memoKey] = text;
+    data.bucketMemos[String(editingBucketStart)] = text;
   } else {
-    delete data.bucketMemos[memoKey];
+    delete data.bucketMemos[String(editingBucketStart)];
   }
   saveData(data);
   closeBucketMemoModal();
   renderView();
 }
 
-// ── クリック外で閉じる ──
+// ── モーダル外クリックで閉じる ──
 document.getElementById('settingsModal').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
 });
@@ -705,7 +673,7 @@ document.getElementById('bucketMemoModal').addEventListener('click', function(e)
   if (e.target === this) closeBucketMemoModal();
 });
 
-// ── 初期化 ──
+// ── 初期化・起動 ──
 function initApp() {
   const data = loadData();
   if (!data.seeded) {
@@ -715,7 +683,6 @@ function initApp() {
   renderView();
 }
 
-// ── 起動 ──
 initApp();
 syncFromGist();
 </script>
