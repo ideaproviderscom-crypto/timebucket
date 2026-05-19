@@ -205,11 +205,11 @@
       <label>カテゴリ</label>
       <select id="itemCategory">
         <option value="">未設定</option>
-        <option value="travel">旅行・冒険</option>
-        <option value="family">家族・人間関係</option>
-        <option value="health">健康・体</option>
-        <option value="hobby">趣味・挑戦</option>
         <option value="work">仕事・お金</option>
+        <option value="health">健康・体</option>
+        <option value="family">家族・人間関係</option>
+        <option value="hobby">趣味・挑戦</option>
+        <option value="travel">旅行・冒険</option>
       </select>
     </div>
     <div class="form-row">
@@ -497,7 +497,7 @@ function uid() {
 }
 
 // カテゴリ表示順
-const CAT_ORDER = { travel: 0, family: 1, health: 2, hobby: 3, work: 4 };
+const CAT_ORDER = { work: 0, health: 1, family: 2, hobby: 3, travel: 4 };
 function catOrder(cat) { return CAT_ORDER[cat] ?? 99; }
 // アクティブ（未達成・経過中）→ 達成/中止を末尾にしつつカテゴリ順
 function sortItems(items) {
