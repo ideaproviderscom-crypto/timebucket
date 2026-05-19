@@ -441,9 +441,11 @@ function renderTimeline(items, settings, bucketMemos) {
     bucketItems.forEach(item => {
       const cc = catCls(item.category);
       html += `<div class="item-card ${item.status}${cc ? ' ' + cc : ''}" onclick="openItemModal('${item.id}')">
-        ${item.category ? catLabel(item.category) : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <span>${item.category ? catLabel(item.category) : ''}</span>
+          <span class="card-status">${statusLabel(item.status)}</span>
+        </div>
         <div class="card-title">${escHtml(item.title)}</div>
-        <div class="card-status">${statusLabel(item.status)}</div>
       </div>`;
     });
     html += `</div></div>`;
@@ -466,13 +468,15 @@ function renderCards(items, settings) {
   sorted.forEach(item => {
     const cc = catCls(item.category);
     html += `<div class="card-big ${item.status}${cc ? ' ' + cc : ''}" onclick="openItemModal('${item.id}')">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <div class="card-big-bucket" style="margin-bottom:0">${item.bucketStart !== undefined ? getBucketLabel(item.bucketStart) : '—'}</div>
-        ${item.category ? catLabel(item.category) : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="card-big-bucket" style="margin-bottom:0">${item.bucketStart !== undefined ? getBucketLabel(item.bucketStart) : '—'}</div>
+          ${item.category ? catLabel(item.category) : ''}
+        </div>
+        <span class="status-badge ${item.status}">${statusLabel(item.status)}</span>
       </div>
       <div class="card-big-title">${escHtml(item.title)}</div>
       ${item.memo ? `<div class="card-big-memo">${escHtml(item.memo)}</div>` : ''}
-      <div style="margin-top:8px"><span class="status-badge ${item.status}">${statusLabel(item.status)}</span></div>
     </div>`;
   });
   html += '</div>';
