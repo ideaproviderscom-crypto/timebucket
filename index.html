@@ -86,14 +86,14 @@
   /* ── バケットメモ（別枠） ── */
   .bucket-memo-box { margin: 0 6px 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; display: flex; gap: 5px; align-items: flex-start; }
   .bucket-memo-icon { font-size: 0.7rem; flex-shrink: 0; margin-top: 1px; opacity: 0.7; }
-  .bucket-memo-text { font-size: 0.7rem; color: var(--text2); line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+  .bucket-memo-text { font-size: 0.8rem; color: var(--text); line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
   .bucket-memo-add { margin: 0 6px 6px; background: transparent; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 8px; text-align: center; font-size: 0.65rem; color: var(--border); cursor: pointer; display: none; }
   .bucket-header-wrap:hover .bucket-memo-add { display: block; }
 
   /* ── カードコンポーネント（タイムライン用） ── */
   .item-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
   .item-card:hover { transform: translateY(-1px); border-color: var(--accent); }
-  .item-card.done { border-left: 3px solid var(--green); opacity: 0.75; }
+  .item-card.done { border-left: 3px solid #555; opacity: 0.45; filter: grayscale(60%); }
   .item-card.canceled { border-left: 3px solid var(--red); opacity: 0.5; }
   .item-card.pending { border-left: 3px solid var(--yellow); }
   .item-card.ongoing { border-left: 3px solid #FF9800; }
@@ -104,7 +104,7 @@
   .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
   .card-big { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
   .card-big:hover { transform: translateY(-2px); border-color: var(--accent); }
-  .card-big.done { border-left: 4px solid var(--green); }
+  .card-big.done { border-left: 4px solid #555; opacity: 0.45; filter: grayscale(60%); }
   .card-big.canceled { border-left: 4px solid var(--red); opacity: 0.6; }
   .card-big.pending { border-left: 4px solid var(--yellow); }
   .card-big.ongoing { border-left: 4px solid #FF9800; }
@@ -416,11 +416,7 @@ function renderTimeline(items, settings, bucketMemos) {
   buckets.forEach(b => {
     const isCurrent = b.start === currentBucketStart;
     const allBucketItems = items.filter(i => i.bucketStart === b.start);
-    // 未達成・経過中を先、達成・中止を後に表示
-    const bucketItems = [
-      ...allBucketItems.filter(i => i.status === 'pending' || i.status === 'ongoing'),
-      ...allBucketItems.filter(i => i.status !== 'pending' && i.status !== 'ongoing')
-    ];
+    const bucketItems = sortItems(allBucketItems);
     const memoText = bucketMemos[String(b.start)] || '';
 
     let memoHtml = '';
@@ -464,11 +460,7 @@ function renderCards(items, settings) {
   if (items.length === 0) {
     return '<div class="empty"><div class="empty-icon">🪣</div><div>まだアイテムがありません<br>「＋ 追加」から始めましょう</div></div>';
   }
-  // 未達成・経過中を先、達成・中止を後に表示
-  const sorted = [
-    ...items.filter(i => i.status === 'pending' || i.status === 'ongoing'),
-    ...items.filter(i => i.status !== 'pending' && i.status !== 'ongoing')
-  ];
+  const sorted = sortItems(items);
   let html = '<div class="cards-grid">';
   sorted.forEach(item => {
     const cc = catCls(item.category);
@@ -502,6 +494,17 @@ function statusLabel(s) {
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// カテゴリ表示順
+const CAT_ORDER = { travel: 0, family: 1, health: 2, hobby: 3, work: 4 };
+function catOrder(cat) { return CAT_ORDER[cat] ?? 99; }
+// アクティブ（未達成・経過中）→ 達成/中止を末尾にしつつカテゴリ順
+function sortItems(items) {
+  const active   = items.filter(i => i.status !== 'done' && i.status !== 'canceled');
+  const inactive = items.filter(i => i.status === 'done' || i.status === 'canceled');
+  const byCategory = (a, b) => catOrder(a.category) - catOrder(b.category);
+  return [...active.sort(byCategory), ...inactive.sort(byCategory)];
 }
 
 const CAT_MAP = {
