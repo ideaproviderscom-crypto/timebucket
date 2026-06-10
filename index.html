@@ -294,6 +294,8 @@ async function syncFromGist() {
 }
 
 async function pushToGistNow() {
+  clearTimeout(syncTimer);
+  syncTimer = null;
   try {
     setSyncStatus('syncing');
     const data = loadData();
@@ -301,6 +303,7 @@ async function pushToGistNow() {
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
     const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
       method: 'PATCH',
+      keepalive: true,
       headers: {
         'Authorization': `token ${GIST_PAT}`,
         'Content-Type': 'application/json'
@@ -318,6 +321,17 @@ function schedulePush() {
   clearTimeout(syncTimer);
   syncTimer = setTimeout(pushToGistNow, 1000);
 }
+
+// 画面を閉じる/切り替える時：未送信のpushを即時実行（keepaliveで離脱後も送信継続）
+// 画面に戻った時：他端末の変更を取り込む
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    if (syncTimer) pushToGistNow();
+  } else if (!syncTimer) {
+    syncFromGist();
+  }
+});
+window.addEventListener('pagehide', () => { if (syncTimer) pushToGistNow(); });
 // ── ここまでGist同期 ──
 
 // ── データ管理 ──
